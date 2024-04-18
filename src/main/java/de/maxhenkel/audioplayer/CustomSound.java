@@ -1,16 +1,16 @@
 package de.maxhenkel.audioplayer;
 
 import de.maxhenkel.configbuilder.entry.ConfigEntry;
-import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.SkullBlock;
+import net.minecraft.block.SkullBlock;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,10 +22,10 @@ public class CustomSound {
 
     public static final String DEFAULT_HEAD_LORE = "Has custom audio";
 
-    protected UUID soundId;
+    protected final UUID soundId;
     @Nullable
-    protected Float range;
-    protected boolean staticSound;
+    protected final Float range;
+    protected final boolean staticSound;
 
     public CustomSound(UUID soundId, @Nullable Float range, boolean staticSound) {
         this.soundId = soundId;
@@ -35,7 +35,7 @@ public class CustomSound {
 
     @Nullable
     public static CustomSound of(ItemStack item) {
-        CompoundTag tag = item.getTag();
+        NbtCompound tag = item.getNbt();
         if (tag == null) {
             return null;
         }
@@ -43,10 +43,10 @@ public class CustomSound {
     }
 
     @Nullable
-    public static CustomSound of(CompoundTag tag) {
+    public static CustomSound of(NbtCompound tag) {
         UUID soundId;
         if (tag.contains(CUSTOM_SOUND)) {
-            soundId = tag.getUUID(CUSTOM_SOUND);
+            soundId = tag.getUuid(CUSTOM_SOUND);
         } else {
             return null;
         }
@@ -83,13 +83,9 @@ public class CustomSound {
         }
     }
 
-    public boolean isStaticSound() {
-        return staticSound;
-    }
-
-    public void saveToNbt(CompoundTag tag) {
+    public void saveToNbt(NbtCompound tag) {
         if (soundId != null) {
-            tag.putUUID(CUSTOM_SOUND, soundId);
+            tag.putUuid(CUSTOM_SOUND, soundId);
         } else {
             tag.remove(CUSTOM_SOUND);
         }
@@ -105,49 +101,37 @@ public class CustomSound {
         }
     }
 
-    public void saveToItemIgnoreLore(ItemStack stack) {
-        saveToItem(stack, null, false);
-    }
-
-    public void saveToItem(ItemStack stack) {
-        saveToItem(stack, null);
-    }
-
     public void saveToItem(ItemStack stack, @Nullable String loreString) {
         saveToItem(stack, loreString, true);
     }
 
     private void saveToItem(ItemStack stack, @Nullable String loreString, boolean applyLore) {
-        CompoundTag tag = stack.getOrCreateTag();
+        NbtCompound tag = stack.getOrCreateNbt();
         saveToNbt(tag);
-        ListTag lore = new ListTag();
+        NbtList lore = new NbtList();
         if (stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof SkullBlock) {
-            CompoundTag blockEntityTag = stack.getOrCreateTagElement(BlockItem.BLOCK_ENTITY_TAG);
+            NbtCompound blockEntityTag = stack.getOrCreateSubNbt(BlockItem.BLOCK_ENTITY_TAG_KEY);
             saveToNbt(blockEntityTag);
             if (loreString == null) {
-                lore.add(0, StringTag.valueOf(Component.Serializer.toJson(Component.literal(DEFAULT_HEAD_LORE).withStyle(style -> style.withItalic(false)).withStyle(ChatFormatting.GRAY))));
+                lore.add(0, NbtString.of(Text.Serialization.toJsonString(Text.literal(DEFAULT_HEAD_LORE).styled(style -> style.withItalic(false)).formatted(Formatting.GRAY))));
             }
         }
 
         if (loreString != null) {
-            lore.add(0, StringTag.valueOf(Component.Serializer.toJson(Component.literal(loreString).withStyle(style -> style.withItalic(false)).withStyle(ChatFormatting.GRAY))));
+            lore.add(0, NbtString.of(Text.Serialization.toJsonString(Text.literal(loreString).styled(style -> style.withItalic(false)).formatted(Formatting.GRAY))));
         }
 
-        CompoundTag display = new CompoundTag();
-        display.put(ItemStack.TAG_LORE, lore);
+        NbtCompound display = new NbtCompound();
+        display.put(ItemStack.LORE_KEY, lore);
         if (applyLore) {
-            tag.put(ItemStack.TAG_DISPLAY, display);
+            tag.put(ItemStack.DISPLAY_KEY, display);
         }
 
-        tag.putInt("HideFlags", ItemStack.TooltipPart.ADDITIONAL.getMask());
-    }
-
-    public CustomSound asStatic(boolean staticSound) {
-        return new CustomSound(soundId, range, staticSound);
+        tag.putInt("HideFlags", ItemStack.TooltipSection.ADDITIONAL.getFlag());
     }
 
     public static boolean clearItem(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
+        NbtCompound tag = stack.getNbt();
         if (tag == null) {
             return false;
         }
@@ -158,7 +142,7 @@ public class CustomSound {
         tag.remove(CUSTOM_SOUND_RANGE);
         tag.remove(CUSTOM_SOUND_STATIC);
         if (stack.getItem() instanceof BlockItem) {
-            CompoundTag blockEntityTag = stack.getOrCreateTagElement(BlockItem.BLOCK_ENTITY_TAG);
+            NbtCompound blockEntityTag = stack.getOrCreateSubNbt(BlockItem.BLOCK_ENTITY_TAG_KEY);
             blockEntityTag.remove(CUSTOM_SOUND);
             blockEntityTag.remove(CUSTOM_SOUND_RANGE);
             blockEntityTag.remove(CUSTOM_SOUND_STATIC);

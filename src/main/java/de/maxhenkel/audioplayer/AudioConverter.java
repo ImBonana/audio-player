@@ -1,8 +1,8 @@
 package de.maxhenkel.audioplayer;
 
 import de.maxhenkel.voicechat.api.mp3.Mp3Decoder;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -22,7 +22,7 @@ public class AudioConverter {
             {(byte) 0x49, (byte) 0x44, (byte) 0x33}
     };
 
-    public static AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 48000F, 16, 1, 2, 48000F, false);
+    public static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 48000F, 16, 1, 2, 48000F, false);
 
     @Nullable
     public static AudioType getAudioType(byte[] data) throws UnsupportedAudioFileException, IOException {

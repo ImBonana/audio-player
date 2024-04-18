@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
@@ -105,11 +105,6 @@ public class FileNameManager {
         save();
     }
 
-    public void remove(UUID audioId) {
-        fileNames.remove(audioId);
-        save();
-    }
-
     @Nullable
     public static String getFileNameFromUrl(String url) {
         String name = url.substring(url.lastIndexOf('/') + 1).trim();
@@ -148,9 +143,7 @@ public class FileNameManager {
             }
             INSTANCE = new FileNameManager(audioDataFolder.resolve("file-name-mappings.json").toFile());
         });
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
-            INSTANCE = null;
-        });
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> INSTANCE = null);
     }
 
     public static Optional<FileNameManager> instance() {

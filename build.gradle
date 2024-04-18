@@ -6,22 +6,41 @@ plugins {
     id 'com.modrinth.minotaur' version "${minotaur_version}"
 }
 
-apply from: "https://raw.githubusercontent.com/henkelmax/mod-gradle-scripts/${mod_gradle_script_version}/mod.gradle"
+archivesBaseName = "${mod_id.replace("_", "-")}-${mod_loader}-${mod_version}"
 
 repositories {
-
+    maven { url 'https://maven.wispforest.io' }
+    maven { url = 'https://maven.maxhenkel.de/repository/public' }
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content {
+            includeGroup "maven.modrinth"
+        }
+    }
+    mavenLocal()
 }
 
 dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+
+    // Fabric API. This is technically optional, but you probably want it anyway.
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    implementation "org.jetbrains:annotations:16.0.1"
+
+
     include(modImplementation("maven.modrinth:admiral:${admiral_version}+fabric"))
     modImplementation "me.lucko:fabric-permissions-api:${fabric_permission_api_version}"
 
     implementation("com.googlecode.soundlibs:mp3spi:${mp3spi_version}") {
         exclude group: 'junit', module: 'junit'
     }
-    shadow("com.googlecode.soundlibs:mp3spi:${mp3spi_version}") {
-        exclude group: 'junit', module: 'junit'
-    }
+
+
+    implementation include("de.maxhenkel.configbuilder:configbuilder:2.0.1")
+    shadow "de.maxhenkel.configbuilder:configbuilder:2.0.1"
 
     implementation "de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}"
     modRuntimeOnly "maven.modrinth:simple-voice-chat:fabric-${voicechat_mod_version}"
@@ -45,12 +64,55 @@ processResources {
                 'minecraft_dependency': minecraft_dependency,
                 'minecraft_version': minecraft_version,
                 'fabric_loader_dependency': fabric_loader_dependency,
+                'fabric_api_version': fabric_api_version,
                 'fabric_api_dependency_breaks': fabric_api_dependency_breaks,
                 'voicechat_api_version': voicechat_api_version
     }
 }
 
-shadowJar {
-    relocate 'javazoom', "de.maxhenkel.audioplayer.javazoom"
-    relocate 'org.tritonus', "de.maxhenkel.audioplayer.tritonus"
+runClient.doFirst {
+    args = ['--username', "_ImBanana${new Random().nextInt(1000)}"]
+}
+
+// Access widener
+def accesswidenerFile = file("src/main/resources/${mod_id}.accesswidener")
+if (enable_accesswideners && accesswidenerFile.exists()) {
+    loom {
+        accessWidenerPath = accesswidenerFile
+    }
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}"}
+    }
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDirs += [
+                    'src/main/generated'
+            ]
+        }
+    }
+}
+
+loom {
+    runs {
+        // This adds a new gradle task that runs the datagen API: "gradlew runDatagen"
+        datagen {
+            inherit server
+            name "Data Generation"
+            vmArg "-Dfabric-api.datagen"
+            vmArg "-Dfabric-api.datagen.output-dir=${file("src/main/generated")}"
+            vmArg "-Dfabric-api.datagen.modid=${mod_id}"
+
+            runDir "build/datagen"
+        }
+    }
+}
+
+java {
+    withSourcesJar()
 }

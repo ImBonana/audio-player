@@ -1,0 +1,11 @@
+{
+    "item.audioplayer.record_tape": "Record Tape",
+    "item.audioplayer.boombox": "Boombox",
+
+    "gui.audioplayer.boombox": "Boombox",
+
+    "itemgroup.boombox": "Boombox",
+
+    "key.category.audioplayer.main": "Audio Player",
+    "key.audioplayer.toggle_boombox": "Toggle Boombox"
+}

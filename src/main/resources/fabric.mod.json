@@ -17,6 +17,12 @@
     "main": [
       "de.maxhenkel.audioplayer.AudioPlayer"
     ],
+    "client": [
+      "de.maxhenkel.audioplayer.AudioPlayerClient"
+    ],
+    "fabric-datagen": [
+      "de.maxhenkel.audioplayer.AudioPlayerDataGenerator"
+    ],
     "voicechat": [
       "de.maxhenkel.audioplayer.Plugin"
     ]
@@ -27,7 +33,8 @@
   "depends": {
     "fabricloader": "${fabric_loader_dependency}",
     "minecraft": "${minecraft_dependency}",
-    "voicechat": ">=${minecraft_version}-${voicechat_api_version}"
+    "voicechat": ">=${minecraft_version}-${voicechat_api_version}",
+    "fabric-api": ">=${fabric_api_version}"
   },
   "breaks": {
     "fabric-api": "${fabric_api_dependency_breaks}"
