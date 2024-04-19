@@ -39,10 +39,11 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements IC
     private void injectTick(CallbackInfo ci) {
         PlayerManager playerManager = PlayerManager.instance();
 
-        ItemStack itemStackInHand = this.getStackInHand(Hand.MAIN_HAND);
+        ItemStack itemStackInMainHand = this.getStackInHand(Hand.MAIN_HAND);
+        ItemStack itemStackInOffHand = this.getStackInHand(Hand.OFF_HAND);
         ItemStack itemStackHead = this.getEquippedStack(EquipmentSlot.HEAD);
 
-        boolean isBoomBoxNotEquipped = itemStackInHand != boombox && itemStackHead != boombox;
+        boolean isBoomBoxNotEquipped = itemStackInMainHand != boombox && itemStackInOffHand != boombox && itemStackHead != boombox;
         boolean isPlaying = channelId != null && playerManager.isPlaying(channelId);
 
         if(boombox != null && isBoomBoxNotEquipped && isPlaying) this.audio_player$stop();
